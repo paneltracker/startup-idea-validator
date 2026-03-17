@@ -21,3 +21,6 @@ implementation_plan.md
 node_modules/
 
 .vercel
+
+# Local Netlify folder
+.netlify

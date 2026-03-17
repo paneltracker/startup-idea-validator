@@ -7,6 +7,10 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 // Initialize the Supabase client
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// Constants
+const DIFF_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+const DIFF_LABELS = ['Entry Level', 'Moderate', 'Advanced', 'Expert'];
+
 // ═══════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════
@@ -189,70 +193,43 @@ modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) clo
 descField.addEventListener('input', () => { descCount.textContent = descField.value.length; });
 
 // ═══════════════════════════════════════════════
-// CARDS
+// DATA FETCHING & REALTIME
 // ═══════════════════════════════════════════════
-const DIFF_LABELS = ['Easy', 'Moderate', 'Hard', 'Very Hard', 'Expert'];
-const DIFF_COLORS = ['#059669', '#2563eb', '#d97706', '#dc2626', '#7c2d12'];
-
-function createCard(idea) {
-    const card = document.createElement('div');
-    card.className = 'idea-card fade-in';
-    const diffIdx = idea.difficulty - 1;
-    card.innerHTML = `
-        <div class="card-header">
-            <span class="category-tag">${idea.category}</span>
-            <div class="header-right">
-                <span class="difficulty-badge" style="color:${DIFF_COLORS[diffIdx]}">
-                    <i data-lucide="signal" style="width:14px;height:14px;"></i>
-                    ${DIFF_LABELS[diffIdx]}
-                </span>
-                <button class="delete-btn" onclick="deleteIdea('${idea.id}')" title="Delete Idea">
-                    <i data-lucide="trash-2" style="width:16px;height:16px;"></i>
-                </button>
-            </div>
-        </div>
-        <h3 class="card-title">${idea.title}</h3>
-        <p class="card-desc">${idea.description}</p>
-        <div class="card-footer">
-            <span class="potential-tag ${idea.potential.toLowerCase().replace(' ', '-')}">${idea.potential} Potential</span>
-            <button class="upvote-btn" onclick="upvoteIdea('${idea.id}', ${idea.votes || 0})">
-                <i data-lucide="chevron-up" style="width:16px;height:16px;"></i>
-                ${idea.votes || 0}
-            </button>
-        </div>
-    `;
-    return card;
-}
 
 // ═══════════════════════════════════════════════
 // DATA FETCHING
 // ═══════════════════════════════════════════════
-// ═══════════════════════════════════════════════
-// REALTIME SUBSCRIPTION
-// ═══════════════════════════════════════════════
-function initRealtime() {
-    db.channel('ideas-changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'ideas' }, payload => {
-            fetchIdeas(); // Refresh data on any change
-        })
-        .subscribe();
-}
-
-// ═══════════════════════════════════════════════
-// DATA FETCHING
 // ═══════════════════════════════════════════════
 async function fetchIdeas() {
-    const { data, error } = await db
-        .from('ideas')
-        .select('*')
-        .order('created_at', { ascending: false });
+    // Fetch ideas, polls, and collaborations in parallel
+    const [ideasRes, pollsRes, colabsRes] = await Promise.all([
+        db.from('ideas').select('*').order('created_at', { ascending: false }),
+        db.from('polls').select('*'),
+        db.from('collaborations').select('*')
+    ]);
 
-    if (error) {
-        showToast('Error fetching ideas: ' + error.message, 'warning');
-        return;
-    }
-    
-    ideas = data || [];
+    if (ideasRes.error) return showToast('Error fetching ideas: ' + ideasRes.error.message, 'warning');
+
+    const allPolls = pollsRes.data || [];
+    const allColabs = colabsRes.data || [];
+
+    ideas = (ideasRes.data || []).map(idea => {
+        const ideaPolls = allPolls.filter(p => p.idea_id === idea.id);
+        const ideaColabs = allColabs.filter(c => c.idea_id === idea.id);
+        
+        // Calculate poll stats
+        const totalPolls = ideaPolls.length;
+        const yesCount = ideaPolls.filter(p => p.response === 'yes').length;
+        const yesPercent = totalPolls ? Math.round((yesCount / totalPolls) * 100) : 0;
+
+        return { 
+            ...idea, 
+            polls: ideaPolls, 
+            colabs: ideaColabs,
+            yesPercent 
+        };
+    });
+
     applyFilters();
     updateLeaderboard();
     updateStats();
@@ -273,7 +250,7 @@ function applyFilters() {
         const matchesCat = cat === 'all' || i.category === cat;
         const matchesDiff = diff === 'all' || i.difficulty.toString() === diff;
         const matchesPot = pot === 'all' || i.potential === pot;
-        
+
         let matchesStatus = true;
         if (status === 'active') {
             matchesStatus = i.status === 'active';
@@ -309,6 +286,8 @@ function createCard(idea) {
     const card = document.createElement('div');
     card.className = 'idea-card fade-in';
     const diffIdx = idea.difficulty - 1;
+    const userVote = idea.polls.find(p => currentUser && p.user_id === currentUser.id)?.response;
+    const userJoined = idea.colabs.some(c => currentUser && c.user_id === currentUser.id);
     const createdDate = new Date(idea.created_at).toLocaleDateString();
 
     card.innerHTML = `
@@ -325,10 +304,13 @@ function createCard(idea) {
                     ${DIFF_LABELS[diffIdx]}
                 </span>
                 ${isOwner ? `
+                    <button class="ai-refine-btn btn-icon-small" title="AI Refine (Advanced)">
+                        <i data-lucide="sparkles" style="width:14px;height:14px;"></i>
+                    </button>
                     <button class="edit-btn btn-icon-small" title="Edit Idea">
                         <i data-lucide="edit-3" style="width:14px;height:14px;"></i>
                     </button>
-                    <button class="delete-btn" onclick="deleteIdea('${idea.id}')" title="Delete Idea">
+                    <button class="delete-btn btn-icon-small" title="Delete Idea">
                         <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
                     </button>
                 ` : ''}
@@ -336,8 +318,29 @@ function createCard(idea) {
         </div>
         <h3 class="card-title">${idea.title}</h3>
         <p class="card-desc">${idea.description || idea.problem || 'No description provided.'}</p>
+        
+        <!-- Validation Poll -->
+        <div class="card-poll">
+            <div class="poll-question">Would you pay for this?</div>
+            <div class="poll-actions">
+                <button class="poll-btn ${userVote === 'yes' ? 'active' : ''}" onclick="submitPoll('${idea.id}', 'yes')">Yes</button>
+                <button class="poll-btn ${userVote === 'maybe' ? 'active' : ''}" onclick="submitPoll('${idea.id}', 'maybe')">Maybe</button>
+                <button class="poll-btn ${userVote === 'no' ? 'active' : ''}" onclick="submitPoll('${idea.id}', 'no')">No</button>
+            </div>
+            <div class="poll-meter">
+                <div class="poll-progress" style="width: ${idea.yesPercent}%"></div>
+                <span class="poll-label">${idea.yesPercent}% Market Buy-in</span>
+            </div>
+        </div>
+
         <div class="card-footer">
-            <span class="potential-tag ${idea.potential.toLowerCase().replace(' ', '-')}">${idea.potential} Potential</span>
+            <div class="colab-section">
+                <button class="btn-join ${userJoined ? 'joined' : ''}" onclick="openJoinModal('${idea.id}')">
+                    <i data-lucide="${userJoined ? 'user-check' : 'users'}" style="width:14px;height:14px;"></i>
+                    ${userJoined ? 'Applied' : 'Join Team'}
+                </button>
+                <span class="colab-count">${idea.colabs.length} partners</span>
+            </div>
             <button class="upvote-btn" onclick="upvoteIdea('${idea.id}', ${idea.votes || 0})">
                 <i data-lucide="chevron-up" style="width:16px;height:16px;"></i>
                 ${idea.votes || 0}
@@ -358,6 +361,12 @@ function createCard(idea) {
         if (editBtn) editBtn.onclick = (e) => {
             e.stopPropagation();
             openEditModal(idea);
+        };
+
+        const aiBtn = card.querySelector('.ai-refine-btn');
+        if (aiBtn) aiBtn.onclick = (e) => {
+            e.stopPropagation();
+            openRefinerModal(idea);
         };
     }
 
@@ -524,7 +533,7 @@ async function deleteIdea(id) {
 async function checkExpiries() {
     const { data: activeIdeas } = await db.from('ideas').select('id, created_at, expiry_hours').eq('status', 'active');
     if (!activeIdeas) return;
-    
+
     for (const idea of activeIdeas) {
         const created = new Date(idea.created_at);
         const expiryDate = new Date(created.getTime() + (idea.expiry_hours || 24) * 60 * 60 * 1000);
@@ -549,5 +558,190 @@ async function init() {
     checkExpiries();
     setInterval(checkExpiries, 5 * 60 * 1000); // Check every 5 mins
 }
+
+// ═══════════════════════════════════════════════
+// AI REFINER SYSTEM
+// ═══════════════════════════════════════════════
+const refinerModal = document.getElementById('refiner-modal-overlay');
+const closeRefinerBtn = document.getElementById('close-refiner-btn');
+const closeRefinerX = document.getElementById('close-refiner-modal');
+const pivotsContainer = document.getElementById('pivots-container');
+const radarPoly = document.getElementById('radar-poly');
+
+function getPivots(idea) {
+    const desc = (idea.description || '').toLowerCase();
+    const title = (idea.title || '').toLowerCase();
+    const cat = idea.category;
+    
+    // Base pivots relative to category
+    let pivots = [];
+    
+    // Keyword-based injection
+    const hasAI = desc.includes('ai') || desc.includes('intel') || title.includes('ai');
+    const hasMobile = desc.includes('app') || desc.includes('mobile') || desc.includes('phone');
+    const hasEnterprise = desc.includes('b2b') || desc.includes('corp') || desc.includes('company');
+    const hasCrypto = desc.includes('crypto') || desc.includes('chain') || desc.includes('web3');
+    const hasEco = desc.includes('green') || desc.includes('eco') || desc.includes('sustain');
+
+    if (cat === 'SaaS') {
+        pivots.push({ title: 'The Enterprise Pivot', desc: 'Reposition as a high-ticket B2B tool for Fortune 500 companies with strict SSO and security compliance.' });
+        if (hasMobile) pivots.push({ title: 'Micro-SaaS Mobile', desc: 'Strip out complex features and focus exclusively on a ultra-fast mobile utility for on-the-go professionals.' });
+        else pivots.push({ title: 'The Vertical SaaS Play', desc: `Niche down specifically for one industry (e.g., Legal or Construction) that highly values ${cat}.` });
+        pivots.push({ title: 'Product-Led Growth', desc: 'Remove all barriers to entry and use a viral invite loop to scale before focusing on monetization.' });
+    } else if (cat === 'AI') {
+        pivots.push({ title: 'The API-First Pivot', desc: 'Stop building a frontend; instead, provide a robust API for other developers to integrate your logic.' });
+        if (hasEnterprise) pivots.push({ title: 'White-Label Intelligence', desc: 'License your models to existing enterprise giants as a custom internal tool.' });
+        else pivots.push({ title: 'The Edge Computing Play', desc: 'Optimize models to run locally on devices, emphasizing privacy and low latency without cloud costs.' });
+        pivots.push({ title: 'Proprietary Dataset Play', desc: 'Train your models on exclusive, non-public data to build an unassailable competitive moat.' });
+    } else if (hasCrypto || cat === 'FinTech') {
+        pivots.push({ title: 'Embedded Finance', desc: 'Instead of a standalone app, integrate your service as a white-label widget for existing platforms.' });
+        if (hasAI) pivots.push({ title: 'Algorithmic Wealth', desc: 'Leverage AI to automate financial decisions, reducing risk and increasing alpha for retail users.' });
+        else pivots.push({ title: 'The Institutional Bridge', desc: 'Focus on connecting legacy financial systems with modern digital asset protocols.' });
+        pivots.push({ title: 'Social Banking', desc: 'Gamify the finance experience by allowing peer groups to collaborate on savings or investment goals.' });
+    } else {
+        pivots.push({ title: 'The Freemium Scale', desc: 'Adopt a tiered pricing model to capture users early and upsell advanced analytics later.' });
+        if (hasEco) pivots.push({ title: 'The Circular Economy', desc: 'Pivoting to focus on sustainability and recycling as core value propositions to attract ESG investors.' });
+        pivots.push({ title: 'Global Localization', desc: 'Translate and adapt the product for emerging markets where competition is currently non-existent.' });
+        pivots.push({ title: 'B2B Licensing', desc: 'Instead of a direct-to-consumer model, license your core technology to established industry players.' });
+    }
+
+    return pivots.slice(0, 3);
+}
+
+function updateRadar(idea) {
+    const score = calculateScore(idea);
+    const yesPercent = idea.yesPercent || 0;
+    
+    // Real metrics based on idea data + polls
+    const innovation = 30 + (score % 40) + (idea.category === 'AI' ? 20 : 0);
+    const marketPotential = 20 + POTENTIAL_WEIGHTS[idea.market_potential] * 15 + (yesPercent / 5);
+    const feasibility = 100 - (idea.difficulty * 15) - (yesPercent / 10); // Higher "is it possible" if sentiment is grounded
+    const monetization = 20 + (score % 30) + (idea.category === 'SaaS' ? 25 : 0);
+
+    const points = [
+        { angle: -Math.PI / 2, val: Math.min(innovation, 90) },
+        { angle: 0, val: Math.min(marketPotential, 90) },
+        { angle: Math.PI / 2, val: Math.min(feasibility, 90) },
+        { angle: Math.PI, val: Math.min(monetization, 90) }
+    ];
+
+    const d = points.map((p, i) => {
+        const x = 50 + Math.cos(p.angle) * (p.val / 2); // Scale to fit center
+        const y = 50 + Math.sin(p.angle) * (p.val / 2);
+        return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+    }).join(' ') + ' Z';
+
+    radarPoly.setAttribute('d', d);
+}
+
+function openRefinerModal(idea) {
+    // Analytics Score
+    updateRadar(idea);
+
+    // Pivots
+    const pivots = getPivots(idea);
+    pivotsContainer.innerHTML = pivots.map(p => `
+        <div class="pivot-card fade-in">
+            <h4>${p.title}</h4>
+            <p>${p.desc}</p>
+        </div>
+    `).join('');
+
+    // Market Consensus
+    const consensusEl = document.getElementById('market-consensus');
+    const yesPercent = idea.yesPercent || 0;
+    const totalPolls = (idea.polls || []).length;
+    
+    let strength = 'low';
+    let insight = 'Insufficient market data to draw a conclusion.';
+    
+    if (totalPolls > 0) {
+        if (yesPercent > 70) {
+            strength = 'high';
+            insight = 'Strong market appetite detected. Users are showing high intent to pay for this solution.';
+        } else if (yesPercent > 40) {
+            strength = 'medium';
+            insight = 'Moderate validation. Some price sensitivity or feature gaps may exist in the current concept.';
+        } else {
+            strength = 'low';
+            insight = 'Significant resistance found. Recommend a major strategic pivot or further problem validation.';
+        }
+    }
+
+    consensusEl.innerHTML = `
+        <h4>Market Intelligence</h4>
+        <p><span class="consensus-strength strength-${strength}">${strength} Consensus</span> ${insight}</p>
+    `;
+
+    refinerModal.classList.remove('hidden');
+    refreshIcons();
+}
+
+function closeRefiner() { refinerModal.classList.add('hidden'); }
+
+if (closeRefinerBtn) closeRefinerBtn.onclick = closeRefiner;
+if (closeRefinerX) closeRefinerX.onclick = closeRefiner;
+
+// ═══════════════════════════════════════════════
+// ACTIONS (POLLS, COLLAB)
+// ═══════════════════════════════════════════════
+async function submitPoll(ideaId, response) {
+    if (!currentUser) return showToast('Please log in to vote in polls.', 'warning');
+    
+    // Upsert poll response
+    const { error } = await db.from('polls').upsert({
+        idea_id: ideaId,
+        user_id: currentUser.id,
+        response: response
+    }, { onConflict: 'idea_id,user_id' });
+
+    if (error) showToast(error.message, 'warning');
+    else showToast('Sentiment recorded!', 'success');
+}
+
+const joinModal = document.getElementById('join-modal-overlay');
+const joinForm = document.getElementById('join-form');
+
+function openJoinModal(ideaId) {
+    if (!currentUser) return showToast('Please log in to join teams.', 'warning');
+    document.getElementById('join-idea-id').value = ideaId;
+    joinModal.classList.remove('hidden');
+    refreshIcons();
+}
+
+function closeJoinModalFn() { joinModal.classList.add('hidden'); }
+
+if (joinForm) joinForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const ideaId = document.getElementById('join-idea-id').value;
+    const role = document.getElementById('join-role').value;
+
+    const { error } = await db.from('collaborations').upsert({
+        idea_id: ideaId,
+        user_id: currentUser.id,
+        role: role
+    }, { onConflict: 'idea_id,user_id' });
+
+    if (error) {
+        showToast(error.message, 'warning');
+    } else {
+        showToast('Application sent to founder!', 'success');
+        closeJoinModalFn();
+    }
+});
+
+// Update Realtime Subscription
+function initRealtime() {
+    db.channel('ideas-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'ideas' }, () => fetchIdeas())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'polls' }, () => fetchIdeas())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'collaborations' }, () => fetchIdeas())
+        .subscribe();
+}
+
+// Close modals on overlay click (expanded)
+[modalOverlay, editModal, refinerModal, authModal, joinModal].forEach(modal => {
+    if (modal) modal.onclick = (e) => { if (e.target === modal) modal.classList.add('hidden'); };
+});
 
 init();

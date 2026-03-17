@@ -372,6 +372,77 @@
         </div>
     </div>
 
+    <!-- ═══════════ AI REFINER MODAL ═══════════ -->
+    <div id="refiner-modal-overlay" class="modal-overlay hidden">
+        <div class="modal ai-modal fade-in">
+            <div class="modal-header">
+                <div>
+                    <h2 class="ai-gradient-text">Aetheris AI Refiner</h2>
+                    <p>Simulating market impact and strategic pivots...</p>
+                </div>
+                <button type="button" id="close-refiner-modal" class="btn-icon modal-close-x">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body ai-body">
+                <div class="ai-scan-line"></div>
+                <div class="refiner-layout">
+                    <!-- Radar Chart Section -->
+                    <div class="radar-section">
+                        <h3>Opportunity Matrix</h3>
+                        <div class="radar-container">
+                            <svg viewBox="0 0 100 100" id="radar-chart">
+                                <circle cx="50" cy="50" r="45" class="radar-grid-bg" />
+                                <circle cx="50" cy="50" r="30" class="radar-grid-bg" />
+                                <circle cx="50" cy="50" r="15" class="radar-grid-bg" />
+                                <path id="radar-poly" class="radar-poly" d="" />
+                                <g class="radar-labels">
+                                    <text x="50" y="5" text-anchor="middle">Innovation</text>
+                                    <text x="95" y="50" alignment-baseline="middle">Market</text>
+                                    <text x="50" y="95" text-anchor="middle">Feasibility</text>
+                                    <text x="5" y="50" alignment-baseline="middle">Monetization</text>
+                                </g>
+                            </svg>
+                        </div>
+                        <div id="market-consensus" class="market-consensus">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+                    <!-- Pivots Section -->
+                    <div class="pivots-section">
+                        <h3>Strategic Pivot Challenges</h3>
+                        <div id="pivots-container" class="pivots-grid">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="close-refiner-btn" class="btn-secondary">Close Intelligence Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Team Modal -->
+    <div id="join-modal-overlay" class="modal-overlay hidden">
+        <div class="modal fade-in" style="max-width:400px; padding:2rem;">
+            <h2>Join Team</h2>
+            <form id="join-form">
+                <input type="hidden" id="join-idea-id">
+                <select id="join-role" style="width:100%; margin: 1rem 0; padding: 0.5rem;">
+                    <option value="Dev">Software Engineer</option>
+                    <option value="Design">Product Designer</option>
+                    <option value="Marketing">Growth Marketer</option>
+                    <option value="Advisor">Strategic Advisor</option>
+                </select>
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button type="button" onclick="closeJoinModalFn()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Join Team</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Toast -->
     <div id="toast-container" class="toast-container"></div>
 
@@ -380,5 +451,4 @@
     <script src="script.js"></script>
     <script>lucide.createIcons();</script>
 </body>
-
 </html>
