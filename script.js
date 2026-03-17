@@ -11,19 +11,125 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // STATE
 // ═══════════════════════════════════════════════
 let ideas = [];
+let currentUser = null;
+let currentAuthMode = 'login'; // 'login' or 'signup'
 
 // ═══════════════════════════════════════════════
 // DOM REFS
 // ═══════════════════════════════════════════════
-const ideaGrid     = document.getElementById('idea-grid');
-const ideaForm     = document.getElementById('idea-form');
-const modalOverlay = document.getElementById('modal-overlay');
-const addIdeaBtn   = document.getElementById('add-idea-btn');
-const closeModal1  = document.getElementById('close-modal');
-const closeModal2  = document.getElementById('close-modal-x');
-const themeToggle  = document.getElementById('theme-toggle');
-const descField    = document.getElementById('idea-description');
-const descCount    = document.getElementById('desc-count');
+const ideaGrid        = document.getElementById('idea-grid');
+const ideaForm        = document.getElementById('idea-form');
+const modalOverlay    = document.getElementById('modal-overlay');
+const addIdeaBtn      = document.getElementById('add-idea-btn');
+const closeModal1     = document.getElementById('close-modal');
+const closeModal2     = document.getElementById('close-modal-x');
+const themeToggle     = document.getElementById('theme-toggle');
+const descField       = document.getElementById('idea-description');
+const descCount       = document.getElementById('desc-count');
+
+// Auth DOM
+const authSection     = document.getElementById('auth-section');
+const userSection     = document.getElementById('user-section');
+const userEmailSpan   = document.getElementById('user-email');
+const loginBtn        = document.getElementById('login-btn');
+const signupBtn       = document.getElementById('signup-btn');
+const logoutBtn       = document.getElementById('logout-btn');
+const authModal       = document.getElementById('auth-modal-overlay');
+const closeAuthModal  = document.getElementById('close-auth-modal');
+const authForm        = document.getElementById('auth-form');
+const authSwitchLink  = document.getElementById('auth-switch-link');
+const authTitle       = document.getElementById('auth-modal-title');
+const authSubtitle    = document.getElementById('auth-modal-subtitle');
+const authSubmitBtn   = document.getElementById('auth-submit-btn');
+
+// ═══════════════════════════════════════════════
+// AUTH LOGIC
+// ═══════════════════════════════════════════════
+async function checkUser() {
+    const { data: { user } } = await db.auth.getUser();
+    currentUser = user;
+    updateAuthUI();
+}
+
+function updateAuthUI() {
+    const landingView = document.getElementById('landing-view');
+    const dashboardView = document.getElementById('dashboard-view');
+
+    if (currentUser) {
+        landingView.classList.add('hidden');
+        dashboardView.classList.remove('hidden');
+        authSection.classList.add('hidden');
+        userSection.classList.remove('hidden');
+        userEmailSpan.textContent = currentUser.email;
+        fetchIdeas();
+        // Force refresh icons
+        lucide.createIcons();
+    } else {
+        landingView.classList.remove('hidden');
+        dashboardView.classList.add('hidden');
+        authSection.classList.remove('hidden');
+        userSection.classList.add('hidden');
+    }
+}
+
+// Landing Page Triggers
+document.querySelectorAll('.login-trigger').forEach(btn => {
+    btn.addEventListener('click', () => openAuthModal('login'));
+});
+document.querySelectorAll('.signup-trigger').forEach(btn => {
+    btn.addEventListener('click', () => openAuthModal('signup'));
+});
+
+function openAuthModal(mode = 'login') {
+    currentAuthMode = mode;
+    authTitle.textContent = mode === 'login' ? 'Log In' : 'Sign Up';
+    authSubtitle.textContent = mode === 'login' ? 'Welcome back! Please enter your details.' : 'Create an account to start validating ideas.';
+    authSubmitBtn.textContent = mode === 'login' ? 'Log In' : 'Sign Up';
+    document.getElementById('auth-switch-text').innerHTML = mode === 'login' 
+        ? `Don't have an account? <a href="#" id="auth-switch-link">Sign Up</a>`
+        : `Already have an account? <a href="#" id="auth-switch-link">Log In</a>`;
+    
+    // Re-attach listeners to the new dynamic link
+    document.getElementById('auth-switch-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        openAuthModal(currentAuthMode === 'login' ? 'signup' : 'login');
+    });
+
+    authModal.classList.remove('hidden');
+}
+
+loginBtn.addEventListener('click', () => openAuthModal('login'));
+signupBtn.addEventListener('click', () => openAuthModal('signup'));
+closeAuthModal.addEventListener('click', () => authModal.classList.add('hidden'));
+logoutBtn.addEventListener('click', async () => {
+    await db.auth.signOut();
+    currentUser = null;
+    updateAuthUI();
+    showToast('Logged out successfully', 'info');
+});
+
+authForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-password').value;
+
+    let result;
+    if (currentAuthMode === 'signup') {
+        result = await db.auth.signUp({ email, password });
+    } else {
+        result = await db.auth.signInWithPassword({ email, password });
+    }
+
+    if (result.error) {
+        showToast(result.error.message, 'warning');
+    } else {
+        currentUser = result.data.user;
+        authModal.classList.add('hidden');
+        updateAuthUI();
+        showToast(currentAuthMode === 'login' ? 'Welcome back!' : 'Account created!', 'success');
+        fetchIdeas();
+    }
+});
 
 // ═══════════════════════════════════════════════
 // ICONS
@@ -186,6 +292,8 @@ ideaForm.addEventListener('submit', async e => {
     const title = document.getElementById('idea-title').value.trim();
     if (!title) return showToast('Title cannot be empty.', 'warning');
     
+    if (!currentUser) return showToast('Please log in to submit an idea.', 'warning');
+
     const newIdea = {
         title,
         category:    document.getElementById('idea-category').value,
@@ -193,7 +301,8 @@ ideaForm.addEventListener('submit', async e => {
         description: document.getElementById('idea-description').value,
         difficulty:  parseInt(document.getElementById('idea-difficulty').value),
         potential:   document.getElementById('idea-potential').value,
-        votes: 0
+        votes: 0,
+        user_id: currentUser.id
     };
 
     const { error } = await db.from('ideas').insert([newIdea]);
@@ -273,4 +382,4 @@ document.getElementById('potential-filter').addEventListener('change', applyFilt
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
-fetchIdeas();
+checkUser();

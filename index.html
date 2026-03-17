@@ -16,7 +16,54 @@
 </head>
 
 <body>
-    <div class="app-container">
+    <!-- ═══════════════════════════════════════════════
+       LANDING VIEW (Home)
+       ═══════════════════════════════════════════════ -->
+    <div id="landing-view" class="landing-view">
+        <nav class="landing-nav">
+            <div class="logo">
+                <div class="logo-icon"><i data-lucide="zap"></i></div>
+                <span>Idea Vault</span>
+            </div>
+            <div class="nav-links">
+                <button class="btn-text login-trigger">Log In</button>
+                <button class="btn-primary signup-trigger">Get Started</button>
+            </div>
+        </nav>
+
+        <main class="landing-main">
+            <section class="hero">
+                <div class="hero-content fade-in">
+                    <span class="badge">Round 2: Powering the Future</span>
+                    <h1>Validate Your <span class="text-gradient">Startup Ideas</span> in Seconds</h1>
+                    <p>The ultimate platform for entrepreneurs to store, track, and rank their next big breakthroughs. Powered by deep analytics and community validation.</p>
+                    <div class="hero-actions">
+                        <button class="btn-primary btn-lg signup-trigger">Start Building Now</button>
+                        <button class="btn-secondary btn-lg">Watch Demo</button>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="glass-card card-1">
+                        <i data-lucide="trending-up"></i>
+                        <span>Market Potential: 85%</span>
+                    </div>
+                    <div class="glass-card card-2">
+                        <i data-lucide="users"></i>
+                        <span>2.4k Views</span>
+                    </div>
+                    <div class="glass-card card-3">
+                        <i data-lucide="award"></i>
+                        <span>#1 Trending</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+       DASHBOARD VIEW
+       ═══════════════════════════════════════════════ -->
+    <div id="dashboard-view" class="app-container hidden">
         <!-- ═══════════ HEADER ═══════════ -->
         <header>
             <div class="logo">
@@ -24,12 +71,22 @@
                 <span>Idea Vault</span>
             </div>
             <div class="header-actions">
+                <div id="auth-section" class="auth-section">
+                    <button id="login-btn" class="btn-secondary">Log In</button>
+                    <button id="signup-btn" class="btn-primary">Sign Up</button>
+                </div>
+                <div id="user-section" class="user-section hidden">
+                    <span id="user-email" class="user-email"></span>
+                    <button id="logout-btn" class="btn-icon" title="Log Out">
+                        <i data-lucide="log-out"></i>
+                    </button>
+                    <button id="add-idea-btn" class="btn-primary">
+                        <i data-lucide="plus" style="width:18px; height:18px;"></i>
+                        New Idea
+                    </button>
+                </div>
                 <button id="theme-toggle" class="btn-icon" aria-label="Toggle theme">
                     <i data-lucide="moon"></i>
-                </button>
-                <button id="add-idea-btn" class="btn-primary">
-                    <i data-lucide="plus" style="width:18px; height:18px;"></i>
-                    New Idea
                 </button>
             </div>
         </header>
@@ -179,6 +236,37 @@
                         <i data-lucide="rocket" style="width:16px; height:16px;"></i>
                         Validate Idea
                     </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══════════ AUTH MODALS ═══════════ -->
+    <div id="auth-modal-overlay" class="modal-overlay hidden">
+        <div class="modal auth-modal fade-in">
+            <div class="modal-header">
+                <div>
+                    <h2 id="auth-modal-title">Log In</h2>
+                    <p id="auth-modal-subtitle">Welcome back! Please enter your details.</p>
+                </div>
+                <button type="button" id="close-auth-modal" class="btn-icon modal-close-x">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="auth-form" class="modal-form">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="auth-email">Email Address</label>
+                        <input type="email" id="auth-email" placeholder="you@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="auth-password">Password</label>
+                        <input type="password" id="auth-password" placeholder="••••••••" required minlength="6">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <p id="auth-switch-text">Don't have an account? <a href="#" id="auth-switch-link">Sign Up</a></p>
+                    <button type="submit" id="auth-submit-btn" class="btn-primary">Log In</button>
                 </div>
             </form>
         </div>
