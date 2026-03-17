@@ -142,6 +142,25 @@
                         <option value="Very High">Very High</option>
                     </select>
                 </div>
+                <div class="filter-group">
+                    <label for="status-filter">View Status</label>
+                    <select id="status-filter">
+                        <option value="active">Active Ideas</option>
+                        <option value="hidden">My Hidden Ideas</option>
+                        <option value="archived">Archived Ideas</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- Leaderboard -->
+            <section class="sidebar-section">
+                <div class="section-title">
+                    <i data-lucide="trophy" style="width:16px; height:16px;"></i>
+                    <span>Trending Leaderboard</span>
+                </div>
+                <div id="leaderboard-list" class="leaderboard-list">
+                    <!-- Leaderboard entries by JS -->
+                </div>
             </section>
 
             <footer class="sidebar-footer">
@@ -185,6 +204,24 @@
                         <label for="idea-title">Startup Title <span class="required">*</span></label>
                         <input type="text" id="idea-title" placeholder="e.g. CloudSync AI" required>
                     </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="idea-visibility">Visibility</label>
+                            <select id="idea-visibility">
+                                <option value="active">Active (Public)</option>
+                                <option value="hidden">Hidden (Private)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="idea-expiry">Review Duration</label>
+                            <select id="idea-expiry">
+                                <option value="24">24 Hours</option>
+                                <option value="48">48 Hours</option>
+                                <option value="168">1 Week</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="form-row">
                         <div class="form-group">
                             <label for="idea-category">Category <span class="required">*</span></label>
@@ -267,6 +304,69 @@
                 <div class="modal-footer">
                     <p id="auth-switch-text">Don't have an account? <a href="#" id="auth-switch-link">Sign Up</a></p>
                     <button type="submit" id="auth-submit-btn" class="btn-primary">Log In</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══════════ EDIT MODAL ═══════════ -->
+    <div id="edit-modal-overlay" class="modal-overlay hidden">
+        <div class="modal fade-in">
+            <div class="modal-header">
+                <div>
+                    <h2>Edit Your Idea</h2>
+                    <p>Refine your startup concept for better validation.</p>
+                </div>
+                <button type="button" id="close-edit-modal-x" class="btn-icon modal-close-x" aria-label="Close modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="edit-form" class="modal-form">
+                <input type="hidden" id="edit-id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="edit-title">Startup Title <span class="required">*</span></label>
+                        <input type="text" id="edit-title" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-category">Category</label>
+                            <select id="edit-category">
+                                <option value="SaaS">SaaS</option>
+                                <option value="FinTech">FinTech</option>
+                                <option value="AI">AI / ML</option>
+                                <option value="HealthTech">HealthTech</option>
+                                <option value="Consumer">Consumer</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-potential">Market Potential</label>
+                            <select id="edit-potential">
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                                <option value="Very High">Very High</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-problem">Problem Statement</label>
+                        <textarea id="edit-problem" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-description">Detailed Description</label>
+                        <textarea id="edit-description" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Difficulty Score</label>
+                        <div class="difficulty-slider-wrap">
+                            <input type="range" id="edit-difficulty" min="1" max="5" step="1" value="3">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="close-edit-modal" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
                 </div>
             </form>
         </div>

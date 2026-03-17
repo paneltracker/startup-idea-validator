@@ -482,10 +482,90 @@ main {
     transition: var(--transition);
 }
 
-.upvote-btn:hover {
-    border-color: var(--primary);
+/* ═══════════ LEADERBOARD ═══════════ */
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.leaderboard-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.leaderboard-item:hover {
+    background: var(--bg-muted);
+}
+
+.rank-badge {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--bg-muted);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 800;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+.leaderboard-item:nth-child(1) .rank-badge { background: #fbbf24; color: #fff; }
+.leaderboard-item:nth-child(2) .rank-badge { background: #94a3b8; color: #fff; }
+.leaderboard-item:nth-child(3) .rank-badge { background: #b45309; color: #fff; }
+
+.leader-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.leader-info h4 {
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.leader-score {
+    font-size: 0.7rem;
     color: var(--primary);
-    background: var(--primary-bg);
+    font-weight: 700;
+}
+
+/* Status Badges */
+.status-badge {
+    position: absolute;
+    top: -10px;
+    right: 20px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-full);
+    text-transform: uppercase;
+    box-shadow: var(--shadow-sm);
+}
+.status-hidden { background: var(--bg-muted); color: var(--text-muted); }
+.status-archived { background: var(--danger-bg); color: var(--danger); }
+
+/* Edit View */
+.idea-card { position: relative; }
+.view-count {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+.timestamp {
+    font-size: 0.7rem;
+    color: var(--text-placeholder);
+    font-style: italic;
 }
 
 /* ═══════════════════════════════════════════════
