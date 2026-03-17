@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "name": "startup-idea-validator",
+  "cleanUrls": true,
+  "framework": null,
+  "installCommand": "npm install",
+  "buildCommand": null
+}

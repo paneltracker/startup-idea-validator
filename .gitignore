@@ -1,0 +1,23 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Idea Vault Data (Local Persistence)
+# (If we were using files for storage, we'd ignore them here)
+
+# Tool logs/temp
+/tmp/
+.gemini/
+brain/
+logs/
+.system_generated/
+.agents/
+walkthrough.md
+task.md
+implementation_plan.md
+
+# Vercel
+.vercel
+node_modules/
+
+.vercel

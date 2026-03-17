@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> |Idea Vault| Startup Idea Validator</title>
+    <meta name="description" content="Submit, validate, and explore startup ideas on an interactive dashboard.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- ═══════════ HEADER ═══════════ -->
+        <header>
+            <div class="logo">
+                <div class="logo-icon"><i data-lucide="zap"></i></div>
+                <span>Idea Vault</span>
+            </div>
+            <div class="header-actions">
+                <button id="theme-toggle" class="btn-icon" aria-label="Toggle theme">
+                    <i data-lucide="moon"></i>
+                </button>
+                <button id="add-idea-btn" class="btn-primary">
+                    <i data-lucide="plus" style="width:18px; height:18px;"></i>
+                    New Idea
+                </button>
+            </div>
+        </header>
+
+        <!-- ═══════════ SIDEBAR ═══════════ -->
+        <aside>
+            <!-- Stats -->
+            <section class="sidebar-section">
+                <div class="section-title">
+                    <i data-lucide="bar-chart-3" style="width:16px; height:16px;"></i>
+                    <span>Analytics</span>
+                </div>
+                <div id="stats-panel" class="stats-grid">
+                    <!-- Stats injected by JS -->
+                </div>
+            </section>
+
+            <!-- Filters -->
+            <section class="sidebar-section">
+                <div class="section-title">
+                    <i data-lucide="sliders-horizontal" style="width:16px; height:16px;"></i>
+                    <span>Filters</span>
+                </div>
+                <div class="filter-group">
+                    <label for="category-filter">Category</label>
+                    <select id="category-filter">
+                        <option value="all">All Categories</option>
+                        <option value="SaaS">SaaS</option>
+                        <option value="FinTech">FinTech</option>
+                        <option value="AI">AI / ML</option>
+                        <option value="HealthTech">HealthTech</option>
+                        <option value="Consumer">Consumer</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="difficulty-filter">Difficulty</label>
+                    <select id="difficulty-filter">
+                        <option value="all">All Levels</option>
+                        <option value="1">Easy</option>
+                        <option value="2">Moderate</option>
+                        <option value="3">Hard</option>
+                        <option value="4">Very Hard</option>
+                        <option value="5">Extremely Hard</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="potential-filter">Market Potential</label>
+                    <select id="potential-filter">
+                        <option value="all">All Levels</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Very High">Very High</option>
+                    </select>
+                </div>
+            </section>
+
+            <footer class="sidebar-footer">
+                <p>© 2026 Idea Vault</p>
+            </footer>
+        </aside>
+
+        <!-- ═══════════ MAIN ═══════════ -->
+        <main>
+            <div class="main-header">
+                <div>
+                    <h1>Startup Ideas</h1>
+                    <p class="subtitle">Validate and explore innovative concepts</p>
+                </div>
+            </div>
+            <div class="search-bar">
+                <i data-lucide="search" style="width:20px; height:20px; color: var(--text-muted); flex-shrink:0;"></i>
+                <input type="text" id="search-input" placeholder="Search ideas by title or description...">
+            </div>
+            <div class="dashboard-grid" id="idea-grid">
+                <!-- Cards injected by JS -->
+            </div>
+        </main>
+    </div>
+
+    <!-- ═══════════ MODAL ═══════════ -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal fade-in">
+            <div class="modal-header">
+                <div>
+                    <h2>New Startup Idea</h2>
+                    <p>Fill in the details below to validate your concept.</p>
+                </div>
+                <button type="button" id="close-modal-x" class="btn-icon modal-close-x" aria-label="Close modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="idea-form" class="modal-form">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="idea-title">Startup Title <span class="required">*</span></label>
+                        <input type="text" id="idea-title" placeholder="e.g. CloudSync AI" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="idea-category">Category <span class="required">*</span></label>
+                            <select id="idea-category" required>
+                                <option value="" disabled selected>Select a category</option>
+                                <option value="SaaS">SaaS</option>
+                                <option value="FinTech">FinTech</option>
+                                <option value="AI">AI / ML</option>
+                                <option value="HealthTech">HealthTech</option>
+                                <option value="Consumer">Consumer</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="idea-potential">Market Potential <span class="required">*</span></label>
+                            <select id="idea-potential" required>
+                                <option value="" disabled selected>Select potential</option>
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                                <option value="Very High">Very High</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="idea-problem">Problem Statement <span class="required">*</span></label>
+                        <textarea id="idea-problem" rows="3" placeholder="What problem does this solve?"
+                            required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="idea-description">Short Description <span class="required">*</span></label>
+                        <textarea id="idea-description" rows="2" placeholder="Describe the solution briefly." required
+                            maxlength="150"></textarea>
+                        <span class="char-count"><span id="desc-count">0</span>/150</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Difficulty Score</label>
+                        <div class="difficulty-slider-wrap">
+                            <input type="range" id="idea-difficulty" min="1" max="5" step="1" value="3">
+                            <div class="difficulty-labels">
+                                <span>Easy</span><span>Moderate</span><span>Hard</span><span>Very
+                                    Hard</span><span>Expert</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="close-modal" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">
+                        <i data-lucide="rocket" style="width:16px; height:16px;"></i>
+                        Validate Idea
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+
+</html>
