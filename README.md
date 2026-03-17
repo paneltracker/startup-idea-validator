@@ -1,23 +1,27 @@
-# Startup Idea Validator Dashboard
+# 🚀 Startup Idea Validator: Aetheris Edition
 
-A premium, interactive web application built with Vanilla HTML, CSS, and JS. This dashboard allows users to submit, browse, and validate startup ideas with real-time statistics and filtering.
+A premium, full-stack platform for validating startup concepts with **Real-Time Ecosystems** and **AI-Driven Market Intelligence**.
 
-## Features
+## ✨ Advanced Features
 
-- **Idea Submission**: Submit startup titles, descriptions, categories, and problem statements.
-- **Difficulty & Potential Ratings**: Visual indicators for how hard an idea is to build and its market potential.
-- **Dynamic Dashboard**: Responsive grid of idea cards with Glassmorphism effects.
-- **Real-time Filtering & Search**: Quickly find ideas by category, difficulty, or keywords.
-- **Live Statistics**: Auto-updating panel showing total ideas, most common category, and average difficulty.
-- **Dark Mode**: Seamless toggle between light and dark themes.
-- **Persistence**: All data is stored locally in the browser's `localStorage`.
+- **Aetheris AI Refiner**: A content-aware intelligence engine that extracts keywords from your idea to generate hyper-niche strategic pivots.
+- **Dynamic Radar Charts**: Visualizes Innovation, Market Potential, Feasibility, and Monetization, with scores that react to real community poll sentiment.
+- **Collaboration Hub**: Real-time team formation with role selection (Engineer, Designer, Advisor) and live partner tracking.
+- **Market Sentiment Polls**: Instant pulse polls ("Would you pay for this?") with live consensus analysis.
+- **Real-Time Sync**: Powered by Supabase, watch upvotes, poll results, and team joins update instantly across all clients.
 
-## Tech Stack
+## 🛠️ Technology Stack
 
-- **HTML5**: Semantic structure.
-- **CSS3**: Variables, Flexbox, Grid, and Glassmorphism.
-- **JavaScript (ES6)**: State management and DOM manipulation.
+- **Frontend**: Vanilla HTML5, CSS3 (Glassmorphism), and ES6+ JavaScript.
+- **Backend/Auth**: [Supabase](https://supabase.com/) for PostgreSQL database, secure Authentication, and Postgres Changes (Realtime).
+- **Icons**: [Lucide Icons](https://lucide.dev/) for a clean, professional aesthetic.
+- **Deployment**: Configured for seamless hosting on [Vercel](https://vercel.com/) or [Netlify](https://www.netlify.com/).
 
-## Setup
+## 🚀 Getting Started
 
-Simply open `index.html` in any modern web browser to run the application locally.
+1. **Environment Config**: Ensure your Supabase URL and Anon Key are correctly set in `script.js`.
+2. **Database Schema**: Run the provided `supabase_setup.sql` in your Supabase SQL Editor.
+3. **Run Locally**: Use a local server (like `live-server`) to open `index.html`.
+
+---
+*Built for the next generation of startup founders.*

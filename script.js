@@ -289,6 +289,8 @@ function createCard(idea) {
     const userVote = idea.polls.find(p => currentUser && p.user_id === currentUser.id)?.response;
     const userJoined = idea.colabs.some(c => currentUser && c.user_id === currentUser.id);
     const createdDate = new Date(idea.created_at).toLocaleDateString();
+    const updatedDate = idea.updated_at ? new Date(idea.updated_at).toLocaleDateString() : null;
+    const isUpdated = updatedDate && updatedDate !== createdDate;
 
     card.innerHTML = `
         ${idea.status !== 'active' ? `<span class="status-badge status-${idea.status}">${idea.status}</span>` : ''}
@@ -346,7 +348,10 @@ function createCard(idea) {
                 ${idea.votes || 0}
             </button>
         </div>
-        <div class="timestamp">Created: ${createdDate}</div>
+        <div class="timestamp">
+            Created: ${createdDate}
+            ${isUpdated ? `<span style="margin-left:8px; opacity:0.7;">• Updated: ${updatedDate}</span>` : ''}
+        </div>
     `;
 
     // Interaction handler (Views & Edit)
@@ -419,6 +424,7 @@ function openEditModal(idea) {
     document.getElementById('edit-category').value = idea.category;
     document.getElementById('edit-potential').value = idea.potential;
     document.getElementById('edit-difficulty').value = idea.difficulty;
+    document.getElementById('edit-status').value = idea.status || 'active';
     document.getElementById('edit-problem').value = idea.problem || '';
     document.getElementById('edit-description').value = idea.description || '';
     editModal.classList.remove('hidden');
@@ -438,6 +444,7 @@ editForm.addEventListener('submit', async (e) => {
         category: document.getElementById('edit-category').value,
         potential: document.getElementById('edit-potential').value,
         difficulty: parseInt(document.getElementById('edit-difficulty').value),
+        status: document.getElementById('edit-status').value,
         problem: document.getElementById('edit-problem').value,
         description: document.getElementById('edit-description').value,
         updated_at: new Date().toISOString()
