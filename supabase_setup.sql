@@ -56,6 +56,11 @@ CREATE POLICY "Users update own ideas" ON ideas
 DROP POLICY IF EXISTS "Public increment views/votes" ON ideas;
 CREATE POLICY "Public increment views/votes" ON ideas
     FOR UPDATE USING (true);
+
+-- Allow users to delete their own ideas
+DROP POLICY IF EXISTS "Users delete own ideas" ON ideas;
+CREATE POLICY "Users delete own ideas" ON ideas
+    FOR DELETE TO authenticated USING (auth.uid() = user_id);
 -- ═══════════════════════════════════════════════
 -- PHASE 3: ECOSYSTEM TABLES
 -- ═══════════════════════════════════════════════

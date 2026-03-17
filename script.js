@@ -373,6 +373,12 @@ function createCard(idea) {
             e.stopPropagation();
             openRefinerModal(idea);
         };
+
+        const deleteBtn = card.querySelector('.delete-btn');
+        if (deleteBtn) deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteIdea(idea.id);
+        };
     }
 
     return card;
